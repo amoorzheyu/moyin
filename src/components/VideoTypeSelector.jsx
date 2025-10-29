@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './VideoTypeSelector.css'
 
 // 使用本地后端代理
@@ -44,6 +44,8 @@ const VIDEO_TYPES = {
 const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [availableTypes, setAvailableTypes] = useState({})
+  const [isScrolling, setIsScrolling] = useState(false)
+  const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
 
   // 尝试从API获取类型列表
   useEffect(() => {
@@ -135,8 +137,34 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
           e.stopPropagation()
           e.preventDefault()
         }}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
+        onTouchStart={(e) => {
+          e.stopPropagation()
+          // 记录触摸开始位置和时间
+          const touch = e.touches[0]
+          touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            time: Date.now()
+          }
+          setIsScrolling(false)
+        }}
+        onTouchMove={(e) => {
+          e.stopPropagation()
+          // 检测是否有明显移动（超过10px视为滚动）
+          const touch = e.touches[0]
+          const deltaX = Math.abs(touch.clientX - touchStartRef.current.x)
+          const deltaY = Math.abs(touch.clientY - touchStartRef.current.y)
+          if (deltaX > 10 || deltaY > 10) {
+            setIsScrolling(true)
+          }
+        }}
+        onTouchEnd={(e) => {
+          e.stopPropagation()
+          // 延迟重置滚动状态，确保遮罩的 onTouchEnd 能看到这个状态
+          setTimeout(() => {
+            setIsScrolling(false)
+          }, 100)
+        }}
       >
         <div className="type-list">
           <div 
@@ -150,6 +178,10 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
             onTouchEnd={(e) => {
               e.stopPropagation()
               e.preventDefault()
+              // 如果正在滚动，不触发选择
+              if (isScrolling) {
+                return
+              }
               console.log('触摸随机选项')
               handleTypeSelect(null)
             }}
@@ -182,6 +214,10 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
                 onTouchEnd={(e) => {
                   e.stopPropagation()
                   e.preventDefault()
+                  // 如果正在滚动，不触发选择
+                  if (isScrolling) {
+                    return
+                  }
                   console.log('触摸类型选项:', label, key)
                   handleTypeSelect(key)
                 }}
@@ -209,25 +245,43 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
         <div 
           className="selector-backdrop"
           onClick={(e) => {
-            // 阻止所有事件传播，确保不影响视频播放器
-            e.stopPropagation()
-            e.preventDefault()
-            e.nativeEvent?.stopImmediatePropagation?.()
-            setIsExpanded(false)
+            // 检查点击是否在遮罩上（而不是在下拉列表上）
+            if (e.target === e.currentTarget && !isScrolling) {
+              e.stopPropagation()
+              e.preventDefault()
+              e.nativeEvent?.stopImmediatePropagation?.()
+              setIsExpanded(false)
+            }
           }}
           onTouchEnd={(e) => {
-            // 阻止所有事件传播，确保不影响视频播放器
-            e.stopPropagation()
-            e.preventDefault()
-            e.nativeEvent?.stopImmediatePropagation?.()
-            setIsExpanded(false)
+            // 如果正在滚动或者触摸目标不是遮罩本身，则不关闭
+            if (isScrolling) {
+              e.stopPropagation()
+              e.preventDefault()
+              return
+            }
+            // 检查触摸是否真的在遮罩上（而不是在下拉列表上）
+            if (e.target === e.currentTarget) {
+              e.stopPropagation()
+              e.preventDefault()
+              e.nativeEvent?.stopImmediatePropagation?.()
+              setIsExpanded(false)
+            }
           }}
           onTouchStart={(e) => {
+            // 如果触摸在下拉列表区域，不处理
+            if (e.target.closest('.selector-dropdown')) {
+              return
+            }
             // 阻止触摸开始事件传播
             e.stopPropagation()
             e.preventDefault()
           }}
           onTouchMove={(e) => {
+            // 如果触摸在下拉列表区域，不处理
+            if (e.target.closest('.selector-dropdown')) {
+              return
+            }
             // 阻止触摸移动事件传播
             e.stopPropagation()
             e.preventDefault()
