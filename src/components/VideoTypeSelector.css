@@ -15,22 +15,53 @@
   overflow: hidden; /* 收起时隐藏 */
 }
 
+/* 未展开时收缩为右上角图标 */
+.video-type-selector:not(.expanded) {
+  top: 20px;
+  right: 20px;
+  left: auto;
+  transform: none;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  border-radius: 50%;
+  padding: 0;
+}
+
 /* 展开时允许下拉列表显示和滚动 */
 .video-type-selector.expanded {
   overflow: visible;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 320px;
+  border-radius: 16px;
 }
 
 .selector-header {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
   padding: 14px 18px;
   cursor: pointer;
   user-select: none;
   position: relative;
   z-index: 1001; /* 确保标题栏在最上层 */
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: auto; /* 确保可以点击 */
+  width: 100%;
+  height: 100%;
+}
+
+/* 未展开时，header只显示图标，居中 */
+.video-type-selector:not(.expanded) .selector-header {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
 }
 
 .selector-header:active {
@@ -43,6 +74,13 @@
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 未展开时，图标保持正常大小 */
+.video-type-selector:not(.expanded) .selector-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .selector-label {
@@ -53,6 +91,15 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 未展开时，隐藏标签 */
+.video-type-selector:not(.expanded) .selector-label {
+  display: none;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
 }
 
 .selector-arrow {
@@ -61,8 +108,14 @@
   justify-content: center;
   color: #fff;
   opacity: 0.6;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+}
+
+/* 未展开时，隐藏箭头 */
+.video-type-selector:not(.expanded) .selector-arrow {
+  display: none;
+  opacity: 0;
 }
 
 .selector-arrow.rotated {
@@ -204,8 +257,32 @@
     border-radius: 14px;
   }
 
+  /* 移动端未展开时的图标模式 */
+  .video-type-selector:not(.expanded) {
+    top: 15px;
+    right: 15px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    max-width: 44px;
+  }
+
+  /* 移动端展开时 */
+  .video-type-selector.expanded {
+    width: 85%;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 14px;
+  }
+
   .selector-header {
     padding: 12px 16px;
+  }
+
+  /* 移动端未展开时，header无内边距 */
+  .video-type-selector:not(.expanded) .selector-header {
+    padding: 0;
   }
 
   .selector-label {
@@ -226,6 +303,12 @@
     height: 20px;
   }
 
+  /* 移动端未展开时图标大小 */
+  .video-type-selector:not(.expanded) .selector-icon {
+    width: 22px;
+    height: 22px;
+  }
+
   .check-icon {
     width: 18px;
     height: 18px;
@@ -239,6 +322,15 @@
 /* 安全区域适配（刘海屏） */
 @supports (padding: max(0px)) {
   .video-type-selector {
+    top: max(20px, env(safe-area-inset-top));
+  }
+
+  .video-type-selector:not(.expanded) {
+    top: max(20px, env(safe-area-inset-top));
+    right: max(20px, env(safe-area-inset-right));
+  }
+
+  .video-type-selector.expanded {
     top: max(20px, env(safe-area-inset-top));
   }
 }
