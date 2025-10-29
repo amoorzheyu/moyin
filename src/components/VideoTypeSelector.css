@@ -27,6 +27,22 @@
   max-width: 48px;
   border-radius: 50%;
   padding: 0;
+  background: rgba(0, 0, 0, 0.25) !important; /* 折中的背景不透明度，使用!important确保优先级 */
+  opacity: 0.35 !important; /* 折中的整体透明度，使用!important确保优先级 */
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 未展开时hover效果，稍微提高透明度（只在鼠标悬停时） */
+.video-type-selector:not(.expanded):hover {
+  opacity: 0.9 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* 触摸设备上的active状态，立即恢复 */
+.video-type-selector:not(.expanded):active {
+  opacity: 0.9 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  transition: opacity 0.1s ease-out, background 0.1s ease-out;
 }
 
 /* 展开时允许下拉列表显示和滚动 */
@@ -38,6 +54,13 @@
   width: 90%;
   max-width: 320px;
   border-radius: 16px;
+  background: rgba(0, 0, 0, 0.85); /* 展开时恢复正常背景 */
+  opacity: 1; /* 展开时完全不透明 */
+}
+
+/* 展开时图标恢复正常透明度 */
+.video-type-selector.expanded .selector-icon {
+  opacity: 1;
 }
 
 .selector-header {
@@ -74,13 +97,14 @@
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 未展开时，图标保持正常大小 */
+/* 未展开时，图标保持正常大小，并降低透明度 */
 .video-type-selector:not(.expanded) .selector-icon {
   width: 24px;
   height: 24px;
+  opacity: 0.5; /* 图标本身折中的透明度 */
 }
 
 .selector-label {
@@ -265,6 +289,22 @@
     height: 44px;
     min-width: 44px;
     max-width: 44px;
+    background: rgba(0, 0, 0, 0.25) !important; /* 移动端也使用折中的背景透明度 */
+    opacity: 0.35 !important; /* 移动端整体折中的透明度 */
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* 移动端hover效果 */
+  .video-type-selector:not(.expanded):hover {
+    opacity: 0.9 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* 移动端active状态 */
+  .video-type-selector:not(.expanded):active {
+    opacity: 0.9 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    transition: opacity 0.1s ease-out, background 0.1s ease-out;
   }
 
   /* 移动端展开时 */

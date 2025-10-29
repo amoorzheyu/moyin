@@ -190,6 +190,15 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
       onTypeChange(type)
     }
     setIsExpanded(false)
+    // 强制重置可能的active状态，确保关闭后立即恢复低透明度
+    if (selectorRef.current) {
+      selectorRef.current.blur()
+      // 清除可能的触摸状态
+      const header = selectorRef.current.querySelector('.selector-header')
+      if (header) {
+        header.blur()
+      }
+    }
   }
 
   const selectedLabel = selectedType ? (allTypes[selectedType] || selectedType) : '随机'
@@ -204,6 +213,15 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
         onClick={(e) => {
           e.stopPropagation()
           setIsExpanded(!isExpanded)
+          // 如果正在关闭面板，确保清除active状态
+          if (isExpanded) {
+            setTimeout(() => {
+              e.currentTarget.blur()
+              if (selectorRef.current) {
+                selectorRef.current.blur()
+              }
+            }, 100)
+          }
         }}
       >
         <div className="selector-icon">
