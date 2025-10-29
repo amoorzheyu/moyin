@@ -71,14 +71,14 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
     if (!isExpanded) return
 
     const handleDocumentClick = (e) => {
-      // 如果正在滚动，不关闭
+      // 如果正在滚动，不处理
       if (isScrolling) {
         return
       }
       
       if (!selectorRef.current) return
       
-      // 检查点击是否在header或dropdown内，如果是则不关闭
+      // 检查点击是否在header或dropdown内，如果是则不处理，让事件继续传播
       const header = selectorRef.current.querySelector('.selector-header')
       const dropdown = selectorRef.current.querySelector('.selector-dropdown')
       if (header && header.contains(e.target)) {
@@ -89,27 +89,40 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
       }
       
       // 检查点击是否在选择器内部的其他地方（比如遮罩）
+      let shouldClose = false
       if (selectorRef.current.contains(e.target)) {
         // 如果点击的是遮罩区域，应该关闭
         if (backdropRef.current && (e.target === backdropRef.current || backdropRef.current.contains(e.target))) {
-          setIsExpanded(false)
+          shouldClose = true
+        } else {
+          return // 点击在选择器内部但不是遮罩，不处理
         }
-        return
+      } else {
+        // 点击在选择器外部，关闭面板
+        shouldClose = true
       }
       
-      // 点击在选择器外部，关闭面板
-      setIsExpanded(false)
+      if (shouldClose) {
+        setIsExpanded(false)
+        // 如果点击在视频播放器区域，阻止事件传播，避免触发播放/暂停
+        const videoContainer = e.target.closest('.video-player-container')
+        if (videoContainer) {
+          e.stopPropagation()
+          e.preventDefault()
+          e.stopImmediatePropagation()
+        }
+      }
     }
 
     const handleDocumentTouchEnd = (e) => {
-      // 如果正在滚动，不关闭
+      // 如果正在滚动，不处理
       if (isScrolling) {
         return
       }
       
       if (!selectorRef.current) return
       
-      // 检查触摸是否在header或dropdown内，如果是则不关闭
+      // 检查触摸是否在header或dropdown内，如果是则不处理，让事件继续传播
       const header = selectorRef.current.querySelector('.selector-header')
       const dropdown = selectorRef.current.querySelector('.selector-dropdown')
       if (header && header.contains(e.target)) {
@@ -120,29 +133,42 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
       }
       
       // 检查触摸是否在选择器内部的其他地方（比如遮罩）
+      let shouldClose = false
       if (selectorRef.current.contains(e.target)) {
         // 如果触摸的是遮罩区域，应该关闭
         if (backdropRef.current && (e.target === backdropRef.current || backdropRef.current.contains(e.target))) {
-          setIsExpanded(false)
+          shouldClose = true
+        } else {
+          return // 触摸在选择器内部但不是遮罩，不处理
         }
-        return
+      } else {
+        // 触摸在选择器外部，关闭面板
+        shouldClose = true
       }
       
-      // 触摸在选择器外部，关闭面板
-      setIsExpanded(false)
+      if (shouldClose) {
+        setIsExpanded(false)
+        // 如果触摸在视频播放器区域，阻止事件传播，避免触发播放/暂停
+        const videoContainer = e.target.closest('.video-player-container')
+        if (videoContainer) {
+          e.stopPropagation()
+          e.preventDefault()
+          e.stopImmediatePropagation()
+        }
+      }
     }
 
     // 延迟添加监听，避免立即触发关闭
-    // 使用冒泡阶段，让子元素的事件先处理
+    // 使用捕获阶段，先拦截事件，防止传播到视频播放器
     const timer = setTimeout(() => {
-      document.addEventListener('click', handleDocumentClick, false)
-      document.addEventListener('touchend', handleDocumentTouchEnd, false)
+      document.addEventListener('click', handleDocumentClick, true)
+      document.addEventListener('touchend', handleDocumentTouchEnd, true)
     }, 0)
 
     return () => {
       clearTimeout(timer)
-      document.removeEventListener('click', handleDocumentClick, false)
-      document.removeEventListener('touchend', handleDocumentTouchEnd, false)
+      document.removeEventListener('click', handleDocumentClick, true)
+      document.removeEventListener('touchend', handleDocumentTouchEnd, true)
     }
   }, [isExpanded, isScrolling])
 
