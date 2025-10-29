@@ -1,0 +1,244 @@
+.video-type-selector {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000; /* 提高 z-index 确保在最上层 */
+  width: 90%;
+  max-width: 320px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden; /* 收起时隐藏 */
+}
+
+/* 展开时允许下拉列表显示和滚动 */
+.video-type-selector.expanded {
+  overflow: visible;
+}
+
+.selector-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  z-index: 1001; /* 确保标题栏在最上层 */
+  transition: background-color 0.2s;
+  pointer-events: auto; /* 确保可以点击 */
+}
+
+.selector-header:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.selector-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.selector-label {
+  flex: 1;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selector-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0.6;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.selector-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.selector-dropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1001; /* 确保下拉列表在遮罩之上 */
+  pointer-events: auto; /* 确保可以点击 */
+}
+
+.video-type-selector.expanded .selector-dropdown {
+  max-height: 400px;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+  touch-action: pan-y; /* 允许垂直滚动 */
+  overscroll-behavior: contain; /* 防止滚动传播 */
+  will-change: scroll-position; /* 优化滚动性能 */
+}
+
+.type-list {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 允许flex子元素缩小 */
+}
+
+.type-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+  flex-shrink: 0; /* 防止项目被压缩 */
+  user-select: none; /* 防止文本选择干扰滚动 */
+  pointer-events: auto; /* 确保可以点击 */
+  z-index: 1002; /* 确保选项可以点击 */
+}
+
+.type-item:active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.type-item.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.type-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  flex: 1;
+}
+
+.type-item.active .type-name {
+  font-weight: 500;
+  color: #fff;
+}
+
+.check-icon {
+  color: #4CAF50;
+  flex-shrink: 0;
+  margin-left: 8px;
+  animation: checkIn 0.2s ease-out;
+}
+
+@keyframes checkIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.selector-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999; /* 遮罩在选择器下方 */
+  animation: fadeIn 0.2s ease-out;
+  pointer-events: auto; /* 确保可以点击关闭 */
+  touch-action: none; /* 阻止默认触摸行为 */
+  -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 自定义滚动条 - 覆盖全局样式 */
+.selector-dropdown::-webkit-scrollbar {
+  width: 4px;
+  display: block !important; /* 覆盖全局的 display: none */
+}
+
+.selector-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.selector-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.selector-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* 确保可以滚动 */
+.selector-dropdown {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .video-type-selector {
+    width: 85%;
+    top: 15px;
+    border-radius: 14px;
+  }
+
+  .selector-header {
+    padding: 12px 16px;
+  }
+
+  .selector-label {
+    font-size: 14px;
+  }
+
+  .type-item {
+    padding: 11px 16px;
+  }
+
+  .type-name {
+    font-size: 13px;
+  }
+
+  .selector-icon,
+  .selector-arrow {
+    width: 20px;
+    height: 20px;
+  }
+
+  .check-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .video-type-selector.expanded .selector-dropdown {
+    max-height: 50vh;
+  }
+}
+
+/* 安全区域适配（刘海屏） */
+@supports (padding: max(0px)) {
+  .video-type-selector {
+    top: max(20px, env(safe-area-inset-top));
+  }
+}
