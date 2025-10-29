@@ -64,16 +64,20 @@ npm run dev:all
 
 打开两个终端窗口：
 
-**终端1：启动前端**
+**终端 1：启动前端**
+
 ```bash
 npm run dev
 ```
+
 前端将在 http://localhost:5173 运行
 
-**终端2：启动后端**
+**终端 2：启动后端**
+
 ```bash
 npm run dev:server
 ```
+
 后端将在 http://localhost:3000 运行
 
 ### 生产环境
@@ -91,6 +95,7 @@ npm start
 ```
 
 服务器将在 http://localhost:3000 运行，同时提供：
+
 - 前端静态文件服务
 - API 代理服务
 
