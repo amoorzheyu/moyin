@@ -6,11 +6,13 @@
   z-index: 1000; /* 提高 z-index 确保在最上层 */
   width: 90%;
   max-width: 320px;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.4); /* 降低背景不透明度，让视频透过来 */
+  backdrop-filter: blur(30px) saturate(180%); /* 增强模糊效果并提高饱和度，使磨砂玻璃效果更明显 */
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.18); /* 添加半透明边框，增强磨砂玻璃质感 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1); /* 添加内阴影增强层次感 */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden; /* 收起时隐藏 */
 }
@@ -54,7 +56,13 @@
   width: 90%;
   max-width: 320px;
   border-radius: 16px;
-  background: rgba(0, 0, 0, 0.85); /* 展开时恢复正常背景 */
+  /* 主容器只设置边框和阴影，背景由header和dropdown各自设置 */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
   opacity: 1; /* 展开时完全不透明 */
 }
 
@@ -73,10 +81,23 @@
   user-select: none;
   position: relative;
   z-index: 1001; /* 确保标题栏在最上层 */
-  transition: background-color 0.2s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), backdrop-filter 0.3s;
   pointer-events: auto; /* 确保可以点击 */
   width: 100%;
   height: 100%;
+  /* 展开时，header有自己的磨砂玻璃背景 */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 展开时，header添加磨砂玻璃效果 */
+.video-type-selector.expanded .selector-header {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  /* 圆角顶部 */
+  border-radius: 16px 16px 0 0;
 }
 
 /* 未展开时，header只显示图标，居中 */
@@ -116,6 +137,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 添加文字阴影增强可读性 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5),
+               0 0 4px rgba(0, 0, 0, 0.3);
 }
 
 /* 未展开时，隐藏标签 */
@@ -149,13 +173,18 @@
 .selector-dropdown {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s, backdrop-filter 0.3s;
+  border-top: 1px solid rgba(255, 255, 255, 0.15); /* 稍微增强边框可见度 */
   position: relative;
   z-index: 1001; /* 确保下拉列表在遮罩之上 */
   pointer-events: auto; /* 确保可以点击 */
+  /* 初始状态下没有背景 */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
+/* 展开时，dropdown添加磨砂玻璃效果 */
 .video-type-selector.expanded .selector-dropdown {
   max-height: 400px;
   overflow-y: auto !important;
@@ -164,6 +193,13 @@
   touch-action: pan-y; /* 允许垂直滚动 */
   overscroll-behavior: contain; /* 防止滚动传播 */
   will-change: scroll-position; /* 优化滚动性能 */
+  position: relative;
+  /* 直接在下拉列表上设置磨砂玻璃效果，包括顶部区域 */
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  /* 圆角底部 */
+  border-radius: 0 0 16px 16px;
 }
 
 .type-list {
@@ -171,6 +207,13 @@
   display: flex;
   flex-direction: column;
   min-height: 0; /* 允许flex子元素缩小 */
+  /* 完全透明，让父元素的磨砂效果显示 */
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* 确保内容在磨砂层上方 */
+  position: relative;
+  z-index: 1;
 }
 
 .type-item {
@@ -184,15 +227,25 @@
   flex-shrink: 0; /* 防止项目被压缩 */
   user-select: none; /* 防止文本选择干扰滚动 */
   pointer-events: auto; /* 确保可以点击 */
-  z-index: 1002; /* 确保选项可以点击 */
+  z-index: 2; /* 确保选项可以点击且在磨砂层上方 */
+  /* 完全透明，让父元素的磨砂效果显示 */
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .type-item:active {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.12);
+  /* 保持透明，让父元素的磨砂效果显示 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .type-item.active {
   background-color: rgba(255, 255, 255, 0.15);
+  /* 保持透明，让父元素的磨砂效果显示 */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .type-name {
@@ -200,11 +253,16 @@
   font-size: 14px;
   font-weight: 400;
   flex: 1;
+  /* 添加文字阴影增强可读性，在磨砂玻璃背景下更清晰 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5),
+               0 0 4px rgba(0, 0, 0, 0.3);
 }
 
 .type-item.active .type-name {
   font-weight: 500;
   color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6),
+               0 0 6px rgba(0, 0, 0, 0.4);
 }
 
 .check-icon {
