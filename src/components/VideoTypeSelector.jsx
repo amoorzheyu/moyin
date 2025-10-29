@@ -46,6 +46,8 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
   const [availableTypes, setAvailableTypes] = useState({})
   const [isScrolling, setIsScrolling] = useState(false)
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 })
+  const selectorRef = useRef(null)
+  const backdropRef = useRef(null)
 
   // 尝试从API获取类型列表
   useEffect(() => {
@@ -63,6 +65,86 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
     }
     fetchTypes()
   }, [])
+
+  // 全局点击监听：当面板展开时，点击外部区域关闭面板
+  useEffect(() => {
+    if (!isExpanded) return
+
+    const handleDocumentClick = (e) => {
+      // 如果正在滚动，不关闭
+      if (isScrolling) {
+        return
+      }
+      
+      if (!selectorRef.current) return
+      
+      // 检查点击是否在header或dropdown内，如果是则不关闭
+      const header = selectorRef.current.querySelector('.selector-header')
+      const dropdown = selectorRef.current.querySelector('.selector-dropdown')
+      if (header && header.contains(e.target)) {
+        return // header点击由自己的onClick处理
+      }
+      if (dropdown && dropdown.contains(e.target)) {
+        return // dropdown内的点击不关闭
+      }
+      
+      // 检查点击是否在选择器内部的其他地方（比如遮罩）
+      if (selectorRef.current.contains(e.target)) {
+        // 如果点击的是遮罩区域，应该关闭
+        if (backdropRef.current && (e.target === backdropRef.current || backdropRef.current.contains(e.target))) {
+          setIsExpanded(false)
+        }
+        return
+      }
+      
+      // 点击在选择器外部，关闭面板
+      setIsExpanded(false)
+    }
+
+    const handleDocumentTouchEnd = (e) => {
+      // 如果正在滚动，不关闭
+      if (isScrolling) {
+        return
+      }
+      
+      if (!selectorRef.current) return
+      
+      // 检查触摸是否在header或dropdown内，如果是则不关闭
+      const header = selectorRef.current.querySelector('.selector-header')
+      const dropdown = selectorRef.current.querySelector('.selector-dropdown')
+      if (header && header.contains(e.target)) {
+        return // header触摸由自己的处理
+      }
+      if (dropdown && dropdown.contains(e.target)) {
+        return // dropdown内的触摸不关闭
+      }
+      
+      // 检查触摸是否在选择器内部的其他地方（比如遮罩）
+      if (selectorRef.current.contains(e.target)) {
+        // 如果触摸的是遮罩区域，应该关闭
+        if (backdropRef.current && (e.target === backdropRef.current || backdropRef.current.contains(e.target))) {
+          setIsExpanded(false)
+        }
+        return
+      }
+      
+      // 触摸在选择器外部，关闭面板
+      setIsExpanded(false)
+    }
+
+    // 延迟添加监听，避免立即触发关闭
+    // 使用冒泡阶段，让子元素的事件先处理
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleDocumentClick, false)
+      document.addEventListener('touchend', handleDocumentTouchEnd, false)
+    }, 0)
+
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('click', handleDocumentClick, false)
+      document.removeEventListener('touchend', handleDocumentTouchEnd, false)
+    }
+  }, [isExpanded, isScrolling])
 
   // 合并API返回的类型和默认类型
   const allTypes = { ...VIDEO_TYPES, ...availableTypes }
@@ -87,10 +169,16 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
   const selectedLabel = selectedType ? (allTypes[selectedType] || selectedType) : '随机'
 
   return (
-    <div className={`video-type-selector ${isExpanded ? 'expanded' : ''}`}>
+    <div 
+      ref={selectorRef}
+      className={`video-type-selector ${isExpanded ? 'expanded' : ''}`}
+    >
       <div 
         className="selector-header"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={(e) => {
+          e.stopPropagation()
+          setIsExpanded(!isExpanded)
+        }}
       >
         <div className="selector-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -240,52 +328,11 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
         </div>
       </div>
 
-      {/* 背景遮罩 */}
+      {/* 背景遮罩 - 使用全局事件监听器处理点击关闭，这里只需要样式 */}
       {isExpanded && (
         <div 
+          ref={backdropRef}
           className="selector-backdrop"
-          onClick={(e) => {
-            // 检查点击是否在遮罩上（而不是在下拉列表上）
-            if (e.target === e.currentTarget && !isScrolling) {
-              e.stopPropagation()
-              e.preventDefault()
-              e.nativeEvent?.stopImmediatePropagation?.()
-              setIsExpanded(false)
-            }
-          }}
-          onTouchEnd={(e) => {
-            // 如果正在滚动或者触摸目标不是遮罩本身，则不关闭
-            if (isScrolling) {
-              e.stopPropagation()
-              e.preventDefault()
-              return
-            }
-            // 检查触摸是否真的在遮罩上（而不是在下拉列表上）
-            if (e.target === e.currentTarget) {
-              e.stopPropagation()
-              e.preventDefault()
-              e.nativeEvent?.stopImmediatePropagation?.()
-              setIsExpanded(false)
-            }
-          }}
-          onTouchStart={(e) => {
-            // 如果触摸在下拉列表区域，不处理
-            if (e.target.closest('.selector-dropdown')) {
-              return
-            }
-            // 阻止触摸开始事件传播
-            e.stopPropagation()
-            e.preventDefault()
-          }}
-          onTouchMove={(e) => {
-            // 如果触摸在下拉列表区域，不处理
-            if (e.target.closest('.selector-dropdown')) {
-              return
-            }
-            // 阻止触摸移动事件传播
-            e.stopPropagation()
-            e.preventDefault()
-          }}
         />
       )}
     </div>
