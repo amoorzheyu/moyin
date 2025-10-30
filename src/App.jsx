@@ -16,6 +16,9 @@ function App() {
   const [selectedType, setSelectedType] = useState(null) // null 表示随机
   const [autoPlay, setAutoPlay] = useState(false) // 自动播放开关，默认关闭
   const [showPauseIcon, setShowPauseIcon] = useState(true) // 显示暂停图标开关，默认开启
+  const [viewportHeight, setViewportHeight] = useState(typeof window !== 'undefined' 
+    ? (window.visualViewport?.height || window.innerHeight)
+    : 0)
   const containerRef = useRef(null)
 
   // 检测视频是否支持播放（实际尝试播放来验证）
@@ -269,6 +272,27 @@ function App() {
     }
   }, [currentIndex, videos.length, loading, selectedType])
 
+  // 监听视口高度变化，避免移动端地址栏导致的 100vh 抖动
+  useEffect(() => {
+    const updateVH = () => {
+      const h = window.visualViewport?.height || window.innerHeight
+      setViewportHeight(h)
+      // 同时设置 CSS 变量，备用（如样式中需要）
+      document.documentElement.style.setProperty('--app-vh', `${h}px`)
+    }
+    updateVH()
+    window.addEventListener('resize', updateVH)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateVH)
+    }
+    return () => {
+      window.removeEventListener('resize', updateVH)
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateVH)
+      }
+    }
+  }, [])
+
   const handleVideoEnd = () => {
     // 如果开启了自动播放，自动切换到下一个视频
     if (autoPlay) {
@@ -340,7 +364,8 @@ function App() {
       <div 
         className="video-list-container"
         style={{
-          transform: `translateY(-${currentIndex * 100}vh)`,
+          // 使用像素位移，避免移动端 100vh 动态变化导致的错位
+          transform: `translateY(-${currentIndex * viewportHeight}px)`,
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       >
