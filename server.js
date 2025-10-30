@@ -4,16 +4,18 @@ import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { existsSync } from 'fs'
 import fetch from 'node-fetch'
+import dotenv from 'dotenv'
 
+// 加载 .env 文件（在导入其他模块之前）
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
+dotenv.config({ path: join(__dirname, '.env') })
 
 const app = express()
 const PORT = 3000
 
 // 真实的API域名（从环境变量读取，不暴露在前端）
 const REAL_API_BASE = process.env.API_BASE_URL || 'undefined'
-
 // 中间件
 app.use(cors())
 app.use(express.json())
