@@ -52,3 +52,125 @@
   margin-top: 20px;
   font-size: 16px;
 }
+
+/* 入口全屏遮罩 */
+.entrance-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(34px) brightness(0.6) saturate(160%) contrast(0.9);
+  -webkit-backdrop-filter: blur(34px) brightness(0.6) saturate(160%) contrast(0.9);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+}
+
+.entrance-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* 柔和暗角渐变，增强层次感 */
+.entrance-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 120% at 50% 40%, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 38%, rgba(0,0,0,0.45) 68%, rgba(0,0,0,0.75) 100%);
+}
+
+/* 叠加更深的一层，确保完全不可辨认（在低端设备上也有效） */
+.entrance-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.entrance-button {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(70% 70% at 50% 50%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 100%);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.entrance-button::before,
+.entrance-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.28);
+  transform-origin: center center;
+  animation: entranceRipple 2s ease-out infinite;
+}
+
+.entrance-button::after {
+  animation-delay: 1s;
+}
+
+.entrance-button:hover {
+  transform: translateZ(0) scale(1.03);
+  box-shadow: 0 12px 34px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.12) inset;
+}
+
+.entrance-button:active {
+  transform: translateZ(0) scale(0.98);
+}
+
+/* 入口按钮内的播放图标轻微半透明，增强融合感 */
+.entrance-button svg {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+.entrance-button:hover svg {
+  opacity: 0.8;
+}
+
+.entrance-text {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+}
+
+.entrance-subtext {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+@keyframes entranceRipple {
+  0% { transform: scale(1); opacity: 0.4; }
+  70% { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .entrance-button { width: 84px; height: 84px; }
+  .entrance-text { font-size: 18px; }
+  .entrance-subtext { font-size: 11px; }
+}

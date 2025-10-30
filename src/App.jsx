@@ -13,6 +13,7 @@ function App() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
+  const [showEntranceOverlay, setShowEntranceOverlay] = useState(true)
   const [selectedType, setSelectedType] = useState(null) // null 表示随机
   const [autoPlay, setAutoPlay] = useState(false) // 自动播放开关，默认关闭
   const [showPauseIcon, setShowPauseIcon] = useState(true) // 显示暂停图标开关，默认开启
@@ -351,6 +352,35 @@ function App() {
 
   return (
     <div className="app" ref={containerRef}>
+      {showEntranceOverlay && (
+        <div
+          className="entrance-overlay"
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            setHasUserInteracted(true)
+            setShowEntranceOverlay(false)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setHasUserInteracted(true)
+              setShowEntranceOverlay(false)
+            }
+          }}
+        >
+          <div className="entrance-content">
+            <div className="entrance-button">
+              <svg width="40" height="40" viewBox="0 0 60 60" fill="none" aria-hidden="true">
+                <circle cx="30" cy="30" r="30" fill="rgba(255,255,255,0.9)"/>
+                <path d="M25 20L25 40L40 30L25 20Z" fill="#000"/>
+              </svg>
+            </div>
+            <span className="entrance-text">点击进入圣地</span>
+            <span className="entrance-subtext">Tap to enter</span>
+          </div>
+        </div>
+      )}
       {/* 视频类型选择器 */}
       <VideoTypeSelector
         selectedType={selectedType}
@@ -380,6 +410,7 @@ function App() {
             hasUserInteracted={hasUserInteracted}
             onUserInteract={() => setHasUserInteracted(true)}
             showPauseIcon={showPauseIcon}
+            suppressGuideOverlay={showEntranceOverlay}
           />
         ))}
       </div>

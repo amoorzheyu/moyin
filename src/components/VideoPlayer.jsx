@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import './VideoPlayer.css'
 
-const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true }) => {
+const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false }) => {
   const videoRef = useRef(null)
   const containerRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -196,7 +196,7 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
       />
       
       {/* 首次播放引导 */}
-      {!hasUserInteracted && isActive && (
+      {!hasUserInteracted && isActive && !suppressGuideOverlay && (
         <div className="play-guide-overlay" onClick={handlePlayClick}>
           <div className="play-guide-content">
             <div className="play-guide-icon">
