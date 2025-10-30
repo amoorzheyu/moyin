@@ -7,6 +7,7 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
   const [isPlaying, setIsPlaying] = useState(false)
   const [touchStartY, setTouchStartY] = useState(0)
   const [touchStartTime, setTouchStartTime] = useState(0)
+  const [isExiting, setIsExiting] = useState(false)
 
   useEffect(() => {
     if (videoRef.current) {
@@ -117,9 +118,11 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
     if (Math.abs(deltaY) > threshold || (Math.abs(deltaY) > 50 && deltaTime < 500)) {
       if (deltaY > 0) {
         // 向上滑动 - 下一个视频
+        setIsExiting(true)
         onSwipeUp && onSwipeUp()
       } else {
         // 向下滑动 - 上一个视频
+        setIsExiting(true)
         onSwipeDown && onSwipeDown()
       }
     } else if (Math.abs(deltaY) < 10 && deltaTime < 200) {
@@ -127,6 +130,13 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
       handlePlayClick()
     }
   }
+
+  // 当该项重新成为活动项时，清除退出状态
+  useEffect(() => {
+    if (isActive) {
+      setIsExiting(false)
+    }
+  }, [isActive])
   
   const handleClick = (e) => {
     if (!isActive) return
@@ -211,7 +221,7 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
       )}
       
       {/* 播放/暂停按钮 - 根据 showPauseIcon 开关控制显示 */}
-      {hasUserInteracted && !isPlaying && showPauseIcon && (
+      {hasUserInteracted && !isPlaying && showPauseIcon && isActive && !isExiting && (
         <div className="play-button-overlay" onClick={togglePlayPause}>
           <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
             <circle cx="30" cy="30" r="30" fill="rgba(0,0,0,0.5)"/>
