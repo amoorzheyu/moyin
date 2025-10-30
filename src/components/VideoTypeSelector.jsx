@@ -41,7 +41,7 @@ const VIDEO_TYPES = {
   'xjj-r': '小姐姐随机',
 }
 
-const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
+const VideoTypeSelector = ({ selectedType, onTypeChange, autoPlay = false, onAutoPlayChange, showPauseIcon = true, onShowPauseIconChange }) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [availableTypes, setAvailableTypes] = useState({})
   const [isScrolling, setIsScrolling] = useState(false)
@@ -299,6 +299,110 @@ const VideoTypeSelector = ({ selectedType, onTypeChange }) => {
         }}
       >
         <div className="type-list">
+          {/* 自动播放开关 */}
+          <div 
+            className="switch-item"
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation()
+              if (isScrolling) return
+            }}
+          >
+            <div className="switch-content">
+              <div className="switch-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path 
+                    d="M8 5V19L19 12L8 5Z" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                  <path 
+                    d="M4 5H6V19H4V5Z" 
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
+              <span className="switch-label">自动播放</span>
+            </div>
+            <div 
+              className={`switch-toggle ${autoPlay ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                onAutoPlayChange && onAutoPlayChange(!autoPlay)
+              }}
+              onTouchEnd={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                if (isScrolling) return
+                onAutoPlayChange && onAutoPlayChange(!autoPlay)
+              }}
+            >
+              <div className="switch-thumb"></div>
+            </div>
+          </div>
+
+          {/* 暂停图标显示开关 */}
+          <div 
+            className="switch-item"
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+            }}
+            onTouchEnd={(e) => {
+              e.stopPropagation()
+              if (isScrolling) return
+            }}
+          >
+            <div className="switch-content">
+              <div className="switch-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <rect 
+                    x="6" 
+                    y="4" 
+                    width="4" 
+                    height="16" 
+                    rx="1" 
+                    fill="currentColor"
+                  />
+                  <rect 
+                    x="14" 
+                    y="4" 
+                    width="4" 
+                    height="16" 
+                    rx="1" 
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
+              <span className="switch-label">显示暂停图标</span>
+            </div>
+            <div 
+              className={`switch-toggle ${showPauseIcon ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                onShowPauseIconChange && onShowPauseIconChange(!showPauseIcon)
+              }}
+              onTouchEnd={(e) => {
+                e.stopPropagation()
+                e.preventDefault()
+                if (isScrolling) return
+                onShowPauseIconChange && onShowPauseIconChange(!showPauseIcon)
+              }}
+            >
+              <div className="switch-thumb"></div>
+            </div>
+          </div>
+
+          {/* 分隔线 */}
+          <div className="switch-divider"></div>
+
           <div 
             className={`type-item ${selectedType === null ? 'active' : ''}`}
             onClick={(e) => {

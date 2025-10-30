@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import './VideoPlayer.css'
 
-const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract }) => {
+const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true }) => {
   const videoRef = useRef(null)
   const containerRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -210,8 +210,8 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
         </div>
       )}
       
-      {/* 播放/暂停按钮 */}
-      {hasUserInteracted && !isPlaying && (
+      {/* 播放/暂停按钮 - 根据 showPauseIcon 开关控制显示 */}
+      {hasUserInteracted && !isPlaying && showPauseIcon && (
         <div className="play-button-overlay" onClick={togglePlayPause}>
           <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
             <circle cx="30" cy="30" r="30" fill="rgba(0,0,0,0.5)"/>

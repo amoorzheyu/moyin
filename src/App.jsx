@@ -14,6 +14,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
   const [selectedType, setSelectedType] = useState(null) // null 表示随机
+  const [autoPlay, setAutoPlay] = useState(false) // 自动播放开关，默认关闭
+  const [showPauseIcon, setShowPauseIcon] = useState(true) // 显示暂停图标开关，默认开启
   const containerRef = useRef(null)
 
   // 检测视频是否支持播放（实际尝试播放来验证）
@@ -268,17 +270,21 @@ function App() {
   }, [currentIndex, videos.length, loading, selectedType])
 
   const handleVideoEnd = () => {
-    if (currentIndex < videos.length - 1) {
-      setCurrentIndex(prev => prev + 1)
-    } else {
-      // 如果没有下一个，加载新视频
-      loadVideo(selectedType).then(url => {
-        if (url) {
-          setVideos(prev => [...prev, url])
-          setCurrentIndex(prev => prev + 1)
-        }
-      })
+    // 如果开启了自动播放，自动切换到下一个视频
+    if (autoPlay) {
+      if (currentIndex < videos.length - 1) {
+        setCurrentIndex(prev => prev + 1)
+      } else {
+        // 如果没有下一个，加载新视频
+        loadVideo(selectedType).then(url => {
+          if (url) {
+            setVideos(prev => [...prev, url])
+            setCurrentIndex(prev => prev + 1)
+          }
+        })
+      }
     }
+    // 如果关闭了自动播放，视频播放结束后不做任何操作（停留在最后一帧）
   }
 
   const handleSwipeUp = () => {
@@ -325,6 +331,10 @@ function App() {
       <VideoTypeSelector
         selectedType={selectedType}
         onTypeChange={setSelectedType}
+        autoPlay={autoPlay}
+        onAutoPlayChange={setAutoPlay}
+        showPauseIcon={showPauseIcon}
+        onShowPauseIconChange={setShowPauseIcon}
       />
 
       <div 
@@ -344,6 +354,7 @@ function App() {
             isActive={index === currentIndex}
             hasUserInteracted={hasUserInteracted}
             onUserInteract={() => setHasUserInteracted(true)}
+            showPauseIcon={showPauseIcon}
           />
         ))}
       </div>
