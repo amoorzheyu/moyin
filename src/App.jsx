@@ -410,6 +410,7 @@ function App() {
             hasUserInteracted={hasUserInteracted}
             onUserInteract={() => setHasUserInteracted(true)}
             showPauseIcon={showPauseIcon}
+            autoPlay={autoPlay}
             suppressGuideOverlay={showEntranceOverlay}
           />
         ))}

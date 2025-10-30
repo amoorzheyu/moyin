@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import './VideoPlayer.css'
 
-const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false }) => {
+const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false, autoPlay = false }) => {
   const videoRef = useRef(null)
   const containerRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -185,7 +185,7 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
         ref={videoRef}
         className="video-player"
         src={videoUrl}
-        loop={false}
+        loop={!autoPlay}
         playsInline
         webkit-playsinline="true"
         x5-playsinline="true"
