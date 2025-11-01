@@ -11,6 +11,7 @@
   background-color: #000;
   overflow: hidden;
   flex-shrink: 0;
+  touch-action: none; /* 禁用默认触摸行为，允许 preventDefault */
 }
 
 .video-player {
@@ -121,7 +122,7 @@
 /* 移动端优化 */
 @media (max-width: 768px) {
   .video-player-container {
-    touch-action: pan-y;
+    touch-action: none; /* 禁用默认触摸行为，允许 preventDefault */
   }
 
   .video-player {

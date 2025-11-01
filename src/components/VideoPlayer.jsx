@@ -5,13 +5,51 @@ import './VideoPlayer.css'
 const SWIPE_UP_COOLDOWN = parseInt(import.meta.env.VITE_SWIPE_UP_COOLDOWN || '3000', 10)
 console.log('上滑冷却时间配置:', SWIPE_UP_COOLDOWN, 'ms')
 
-const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false, autoPlay = false, lastSwipeUpTimeRef, onShowToast }) => {
+const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false, autoPlay = false, lastSwipeUpTimeRef, onShowToast, onSwipeMove }) => {
   const videoRef = useRef(null)
   const containerRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [touchStartY, setTouchStartY] = useState(0)
   const [touchStartTime, setTouchStartTime] = useState(0)
   const [isExiting, setIsExiting] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+
+  // 使用原生事件监听器处理触摸移动，确保可以 preventDefault
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const handleTouchMoveNative = (e) => {
+      if (!isActive || !isDragging) return
+      
+      // 检查是否点击了类型选择器区域（防止干扰）
+      const target = e.target
+      if (target && (target.closest?.('.video-type-selector') || target.closest?.('.selector-backdrop'))) {
+        return
+      }
+      
+      const touch = e.touches[0]
+      if (!touch) return
+      
+      const currentY = touch.clientY
+      const deltaY = touchStartY - currentY
+      
+      // 实时更新滑动距离，传递给父组件
+      if (onSwipeMove) {
+        onSwipeMove(deltaY)
+      }
+      
+      // 防止默认滚动行为
+      e.preventDefault()
+    }
+
+    // 使用 { passive: false } 确保可以调用 preventDefault
+    container.addEventListener('touchmove', handleTouchMoveNative, { passive: false })
+
+    return () => {
+      container.removeEventListener('touchmove', handleTouchMoveNative)
+    }
+  }, [isActive, isDragging, touchStartY, onSwipeMove])
 
   useEffect(() => {
     if (videoRef.current) {
@@ -98,14 +136,32 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
     const touch = e.touches[0]
     setTouchStartY(touch.clientY)
     setTouchStartTime(Date.now())
+    setIsDragging(true)
+    
+    // 通知父组件开始滑动
+    if (onSwipeMove) {
+      onSwipeMove(0)
+    }
+  }
+
+  // handleTouchMove 现在只是备用，主要逻辑在原生事件监听器中
+  // 保留 React 事件处理器用于兼容性
+  const handleTouchMove = (e) => {
+    // 主要逻辑已通过原生事件监听器处理，这里不需要做任何事
+    // 但保留这个函数以避免 React 警告
   }
 
   const handleTouchEnd = (e) => {
-    if (!isActive) return
+    if (!isActive || !isDragging) return
     
     // 检查是否点击了类型选择器区域（防止干扰）
     const target = e.target
     if (target && (target.closest?.('.video-type-selector') || target.closest?.('.selector-backdrop'))) {
+      setIsDragging(false)
+      // 清除滑动偏移
+      if (onSwipeMove) {
+        onSwipeMove(0)
+      }
       return // 忽略选择器区域的点击
     }
     
@@ -115,11 +171,21 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
     const deltaY = touchStartY - touchEndY
     const deltaTime = touchEndTime - touchStartTime
 
-    // 快速滑动判定（超过80px，且时间少于500ms，或滑动距离超过屏幕1/4）
-    const screenHeight = window.innerHeight
-    const threshold = Math.max(80, screenHeight * 0.2)
+    // 清除拖拽状态
+    setIsDragging(false)
     
-    if (Math.abs(deltaY) > threshold || (Math.abs(deltaY) > 50 && deltaTime < 500)) {
+    // 清除滑动偏移（通知父组件滑动结束）
+    if (onSwipeMove) {
+      onSwipeMove(0)
+    }
+
+    // 快速滑动判定（降低阈值，提高响应性）
+    const screenHeight = window.innerHeight
+    // 降低阈值：屏幕高度的10%或至少40px，比之前的20%和80px更敏感
+    const threshold = Math.max(40, screenHeight * 0.1)
+    
+    // 更宽松的条件：滑动超过阈值，或者快速滑动（30px且时间少于600ms）
+    if (Math.abs(deltaY) > threshold || (Math.abs(deltaY) > 30 && deltaTime < 600)) {
       if (deltaY > 0) {
         // 向上滑动 - 下一个视频（频率限制）
         const now = Date.now()

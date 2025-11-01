@@ -25,6 +25,8 @@ function App() {
   const [toastMessage, setToastMessage] = useState('') // Toast 提示消息
   const [showToast, setShowToast] = useState(false) // 控制 Toast 显示
   const toastTimerRef = useRef(null) // Toast 自动隐藏定时器
+  const [swipeOffset, setSwipeOffset] = useState(0) // 滑动实时偏移量
+  const [isSwiping, setIsSwiping] = useState(false) // 是否正在滑动
 
   // 显示 Toast 提示
   const showToastMessage = (message) => {
@@ -352,6 +354,37 @@ function App() {
     }
   }
 
+  // 处理滑动过程中的实时更新
+  const handleSwipeMove = (deltaY) => {
+    if (deltaY === 0) {
+      // 滑动结束，清除偏移
+      setIsSwiping(false)
+      setSwipeOffset(0)
+    } else {
+      // 正在滑动，实时更新偏移
+      setIsSwiping(true)
+      setSwipeOffset(deltaY)
+      
+      // 如果向上滑动超过阈值，提前准备下一个视频
+      const screenHeight = window.innerHeight
+      const threshold = screenHeight * 0.3 // 30% 屏幕高度
+      
+      if (deltaY > threshold && currentIndex < videos.length - 1) {
+        // 下一个视频已经在列表中，提前加载
+        // 这里可以添加预加载逻辑
+      } else if (deltaY > threshold && currentIndex >= videos.length - 1) {
+        // 需要加载新视频
+        if (!loading) {
+          loadVideo(selectedType).then(url => {
+            if (url && !videos.find(v => v === url)) {
+              setVideos(prev => [...prev, url])
+            }
+          })
+        }
+      }
+    }
+  }
+
   if (loading && videos.length === 0) {
     return (
       <div className="loading-container">
@@ -414,9 +447,10 @@ function App() {
       <div 
         className="video-list-container"
         style={{
-          // 使用像素位移，避免移动端 100vh 动态变化导致的错位
-          transform: `translateY(-${currentIndex * viewportHeight}px)`,
-          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          // 基础位置：当前视频的偏移 + 实时滑动偏移
+          transform: `translateY(calc(-${currentIndex * viewportHeight}px + ${-swipeOffset}px))`,
+          // 滑动时禁用过渡，结束时启用过渡
+          transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       >
         {videos.map((videoUrl, index) => (
@@ -434,6 +468,7 @@ function App() {
             suppressGuideOverlay={showEntranceOverlay}
             lastSwipeUpTimeRef={lastSwipeUpTimeRef}
             onShowToast={showToastMessage}
+            onSwipeMove={handleSwipeMove}
           />
         ))}
       </div>
