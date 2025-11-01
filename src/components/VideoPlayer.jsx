@@ -1,7 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react'
 import './VideoPlayer.css'
 
-const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false, autoPlay = false }) => {
+// 从环境变量读取上滑间隔（毫秒），默认3000ms（3秒）
+const SWIPE_UP_COOLDOWN = parseInt(import.meta.env.VITE_SWIPE_UP_COOLDOWN || '3000', 10)
+console.log('上滑冷却时间配置:', SWIPE_UP_COOLDOWN, 'ms')
+
+const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUserInteracted, onUserInteract, showPauseIcon = true, suppressGuideOverlay = false, autoPlay = false, lastSwipeUpTimeRef, onShowToast }) => {
   const videoRef = useRef(null)
   const containerRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -117,9 +121,35 @@ const VideoPlayer = ({ videoUrl, onEnd, onSwipeUp, onSwipeDown, isActive, hasUse
     
     if (Math.abs(deltaY) > threshold || (Math.abs(deltaY) > 50 && deltaTime < 500)) {
       if (deltaY > 0) {
-        // 向上滑动 - 下一个视频
-        setIsExiting(true)
-        onSwipeUp && onSwipeUp()
+        // 向上滑动 - 下一个视频（频率限制）
+        const now = Date.now()
+        const lastTime = lastSwipeUpTimeRef.current
+        
+        // 如果是第一次上滑（lastTime === 0），直接允许
+        if (lastTime === 0) {
+          console.log('✓ 首次上滑，允许')
+          lastSwipeUpTimeRef.current = now
+          setIsExiting(true)
+          onSwipeUp && onSwipeUp()
+        } else {
+          const timeSinceLastSwipeUp = now - lastTime
+          console.log('上滑检测 - 距上次:', timeSinceLastSwipeUp, 'ms, 需要:', SWIPE_UP_COOLDOWN, 'ms')
+          
+          if (timeSinceLastSwipeUp >= SWIPE_UP_COOLDOWN) {
+            console.log('✓ 允许上滑')
+            lastSwipeUpTimeRef.current = now
+            setIsExiting(true)
+            onSwipeUp && onSwipeUp()
+          } else {
+            // 频率限制中，忽略此次上滑
+            const remainingSeconds = Math.ceil((SWIPE_UP_COOLDOWN - timeSinceLastSwipeUp) / 1000)
+            console.log(`✗ 上滑冷却中，还需等待 ${remainingSeconds} 秒`)
+            // 显示 Toast 提示
+            if (onShowToast) {
+              onShowToast(`冷却中 ${remainingSeconds}s`)
+            }
+          }
+        }
       } else {
         // 向下滑动 - 上一个视频
         setIsExiting(true)

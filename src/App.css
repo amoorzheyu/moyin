@@ -174,3 +174,66 @@
   .entrance-text { font-size: 18px; }
   .entrance-subtext { font-size: 11px; }
 }
+
+/* Toast 提示 - 优雅的磨砂玻璃效果 */
+.toast {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(32px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.1);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  z-index: 1500;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast.toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  animation: toastFadeOut 2.5s ease-in-out forwards;
+}
+
+.toast-text {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+@keyframes toastFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .toast {
+    top: 80px;
+    padding: 10px 20px;
+    border-radius: 20px;
+  }
+  
+  .toast-text {
+    font-size: 13px;
+  }
+}

@@ -21,6 +21,26 @@ function App() {
     ? (window.visualViewport?.height || window.innerHeight)
     : 0)
   const containerRef = useRef(null)
+  const lastSwipeUpTimeRef = useRef(0) // 全局上滑时间记录，所有视频共享
+  const [toastMessage, setToastMessage] = useState('') // Toast 提示消息
+  const [showToast, setShowToast] = useState(false) // 控制 Toast 显示
+  const toastTimerRef = useRef(null) // Toast 自动隐藏定时器
+
+  // 显示 Toast 提示
+  const showToastMessage = (message) => {
+    // 清除之前的定时器
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current)
+    }
+    
+    setToastMessage(message)
+    setShowToast(true)
+    
+    // 2.5秒后自动隐藏
+    toastTimerRef.current = setTimeout(() => {
+      setShowToast(false)
+    }, 2500)
+  }
 
   // 检测视频是否支持播放（实际尝试播放来验证）
   const checkVideoSupport = (videoUrl) => {
@@ -412,9 +432,18 @@ function App() {
             showPauseIcon={showPauseIcon}
             autoPlay={autoPlay}
             suppressGuideOverlay={showEntranceOverlay}
+            lastSwipeUpTimeRef={lastSwipeUpTimeRef}
+            onShowToast={showToastMessage}
           />
         ))}
       </div>
+
+      {/* Toast 提示 */}
+      {showToast && (
+        <div className={`toast ${showToast ? 'toast-show' : ''}`}>
+          <span className="toast-text">{toastMessage}</span>
+        </div>
+      )}
     </div>
   )
 }
