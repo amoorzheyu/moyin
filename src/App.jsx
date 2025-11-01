@@ -44,9 +44,27 @@ function App() {
     }, 2500)
   }
 
+  // 检测是否在微信浏览器中
+  const isWeChatBrowser = () => {
+    const ua = navigator.userAgent.toLowerCase()
+    return ua.includes('micromessenger')
+  }
+
   // 检测视频是否支持播放（实际尝试播放来验证）
   const checkVideoSupport = (videoUrl) => {
     return new Promise((resolve) => {
+      // 在微信浏览器中，使用更宽松的检测方式
+      if (isWeChatBrowser()) {
+        // 微信浏览器：只检查 URL 格式是否正确，不实际播放视频（避免受限）
+        // 因为微信浏览器可能对自动播放有限制，我们信任 API 返回的 URL
+        const isValidUrl = /^https?:\/\/.+/.test(videoUrl)
+        console.log('微信浏览器：视频 URL 格式检测:', isValidUrl ? '通过' : '失败', videoUrl)
+        // 立即返回结果，不等待网络请求
+        resolve(isValidUrl)
+        return
+      }
+
+      // 其他浏览器：使用原有的详细检测
       const testVideo = document.createElement('video')
       testVideo.preload = 'auto'
       testVideo.muted = true
@@ -78,7 +96,7 @@ function App() {
           console.warn('视频检测超时:', videoUrl)
           resolve(false) // 超时认为不支持
         }
-      }, 5000) // 5秒超时
+      }, 8000) // 增加超时时间到8秒，给微信浏览器更多时间
 
       // 尝试播放视频验证
       const tryPlayVideo = () => {
@@ -204,9 +222,27 @@ function App() {
         const url = (type && type !== 'null' && type !== 'undefined') 
           ? `${API_BASE}/yy?type=${type}` 
           : `${API_BASE}/yy`
-        console.log('加载视频，类型参数:', type, '类型:', type || '随机', 'URL:', url)
-        const response = await fetch(url)
+        console.log(`[尝试 ${attempt + 1}/${maxRetries}] 加载视频，类型参数:`, type, '类型:', type || '随机', 'URL:', url)
+        
+        // 增加超时控制
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10秒超时
+        
+        const response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+        
+        clearTimeout(timeoutId)
+        
+        if (!response.ok) {
+          throw new Error(`HTTP错误: ${response.status} ${response.statusText}`)
+        }
+        
         const result = await response.json()
+        console.log('API响应:', result)
         
         let videoUrl = null
         
@@ -226,16 +262,20 @@ function App() {
           continue // 重试
         }
         
-        // 检测视频格式是否支持
+        // 检测视频格式是否支持（在微信浏览器中使用更宽松的检测）
         const isSupported = await checkVideoSupport(videoUrl)
         if (isSupported) {
+          console.log('✓ 视频检测通过:', videoUrl)
           return videoUrl
         } else {
           console.log(`视频格式不支持，尝试重新加载 (${attempt + 1}/${maxRetries})`)
           // 继续循环重试
         }
       } catch (error) {
-        console.error('加载视频失败:', error)
+        console.error(`加载视频失败 [尝试 ${attempt + 1}/${maxRetries}]:`, error.message || error)
+        if (error.name === 'AbortError') {
+          console.error('请求超时')
+        }
         // 继续重试
       }
     }
@@ -247,6 +287,9 @@ function App() {
   // 加载视频列表
   const loadVideoList = async (type, count = 3) => {
     console.log('开始加载视频列表，类型参数:', type, '类型:', type || '随机')
+    console.log('浏览器信息:', navigator.userAgent)
+    console.log('是否微信浏览器:', isWeChatBrowser())
+    
     setLoading(true)
     const videoUrls = []
     for (let i = 0; i < count; i++) {
@@ -258,9 +301,14 @@ function App() {
     if (videoUrls.length > 0) {
       setVideos(videoUrls)
       setCurrentIndex(0) // 重置到第一个视频
-      console.log('视频列表加载完成，共', videoUrls.length, '个视频')
+      console.log('✓ 视频列表加载完成，共', videoUrls.length, '个视频')
     } else {
-      console.warn('未能加载到有效视频')
+      console.error('✗ 未能加载到有效视频')
+      console.error('请检查：')
+      console.error('1. 网络连接是否正常')
+      console.error('2. 后端服务是否运行')
+      console.error('3. API地址是否正确配置')
+      console.error('4. 浏览器控制台是否有详细错误信息')
     }
     setLoading(false)
   }
